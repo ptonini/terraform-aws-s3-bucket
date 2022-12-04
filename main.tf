@@ -9,19 +9,19 @@ resource "aws_s3_bucket" "this" {
 }
 
 resource "aws_s3_bucket_acl" "this" {
-  bucket   = aws_s3_bucket.this.id
-  acl      = var.acl
+  bucket = aws_s3_bucket.this.id
+  acl    = var.acl
 }
 
 resource "aws_s3_bucket_versioning" "this" {
-  bucket   = aws_s3_bucket.this.id
+  bucket = aws_s3_bucket.this.id
   versioning_configuration {
     status = var.versioning
   }
 }
 
 resource aws_s3_bucket_server_side_encryption_configuration "this" {
-  bucket   = aws_s3_bucket.this.id
+  bucket = aws_s3_bucket.this.id
   rule {
     bucket_key_enabled = false
     apply_server_side_encryption_by_default {
@@ -32,8 +32,8 @@ resource aws_s3_bucket_server_side_encryption_configuration "this" {
 }
 
 resource "aws_s3_bucket_policy" "this" {
-  bucket   = aws_s3_bucket.this.id
-  policy   = jsonencode({
+  bucket = aws_s3_bucket.this.id
+  policy = jsonencode({
     Version   = "2012-10-17",
     Statement = concat(var.bucket_policy_statements, [
       {
@@ -68,16 +68,18 @@ resource "aws_s3_bucket_inventory" "this" {
 }
 
 module "policy" {
-  source = "github.com/ptonini/terraform-aws-iam-policy?ref=v1"
-  count  = var.create_policy ? 1 : 0
-  policy = jsonencode({
+  source  = "ptonini/iam-policy/aws"
+  version = "~> 1.0.0"
+  count   = var.create_policy ? 1 : 0
+  policy  = jsonencode({
     Version   = "2012-10-17",
     Statement = local.access_policy_statements
   })
 }
 
 module "role" {
-  source                = "github.com/ptonini/terraform-aws-iam-role?ref=v1"
+  source                = "ptonini/iam-role/aws"
+  version               = "~> 1.0.0"
   count                 = var.create_role ? 1 : 0
   assume_role_principal = { AWS = var.role_owner_arn }
   policy_statements     = local.access_policy_statements
