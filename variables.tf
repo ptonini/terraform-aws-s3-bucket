@@ -74,3 +74,23 @@ variable "vault_backend" {
 variable "vault_credential_type" {
   default = "assumed_role"
 }
+
+variable "public_access_block" {
+  default = false
+}
+
+variable "block_public_acls" {
+  default = null
+}
+
+variable "block_public_policy" {
+  default = null
+}
+
+variable "ignore_public_acls" {
+  default = null
+}
+
+variable "restrict_public_buckets" {
+  default = null
+}
