@@ -4,6 +4,10 @@ variable "force_destroy" {
   default = false
 }
 
+variable "object_ownership" {
+  default = "ObjectWriter"
+}
+
 variable "acl" {
   default = "private"
 }
@@ -19,7 +23,7 @@ variable "bucket_policy_statements" {
 variable "server_side_encryption" {
   default = {
     kms_master_key_id = null
-    sse_algorithm = "AES256"
+    sse_algorithm     = "AES256"
   }
 }
 

@@ -1,8 +1,8 @@
 locals {
   access_policy_statements = [
     {
-      Effect = "Allow"
-      Action = ["s3:ListAllMyBuckets"]
+      Effect   = "Allow"
+      Action   = ["s3:ListAllMyBuckets"]
       Resource = ["arn:aws:s3:::*"]
     },
     {

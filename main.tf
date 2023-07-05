@@ -8,9 +8,17 @@ resource "aws_s3_bucket" "this" {
   }
 }
 
-resource "aws_s3_bucket_acl" "this" {
+resource "aws_s3_bucket_ownership_controls" "this" {
   bucket = aws_s3_bucket.this.id
-  acl    = var.acl
+  rule {
+    object_ownership = var.object_ownership
+  }
+}
+
+resource "aws_s3_bucket_acl" "this" {
+  bucket     = aws_s3_bucket.this.id
+  acl        = var.acl
+  depends_on = [aws_s3_bucket_ownership_controls.this]
 }
 
 resource "aws_s3_bucket_versioning" "this" {
@@ -20,7 +28,7 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
-resource aws_s3_bucket_server_side_encryption_configuration "this" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket = aws_s3_bucket.this.id
   rule {
     bucket_key_enabled = false
@@ -34,7 +42,7 @@ resource aws_s3_bucket_server_side_encryption_configuration "this" {
 resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.this.id
   policy = jsonencode({
-    Version   = "2012-10-17",
+    Version = "2012-10-17",
     Statement = concat(var.bucket_policy_statements, [
       {
         Principal : "*"
@@ -71,7 +79,7 @@ module "policy" {
   source  = "ptonini/iam-policy/aws"
   version = "~> 1.0.0"
   count   = var.create_policy ? 1 : 0
-  policy  = jsonencode({
+  policy = jsonencode({
     Version   = "2012-10-17",
     Statement = local.access_policy_statements
   })

@@ -11,16 +11,16 @@ output "policy_arn" {
 }
 
 output "role" {
-  value = try(module.role[0].this, null)
+  value     = try(module.role[0].this, null)
   sensitive = true
 }
 
 output "vault_role_name" {
-  value = try(module.role[0].vault_role_name, null)
+  value     = try(module.role[0].vault_role_name, null)
   sensitive = true
 }
 
 output "vault_role_path" {
-  value = try(module.role[0].vault_role_path, null)
+  value     = try(module.role[0].vault_role_path, null)
   sensitive = true
 }
