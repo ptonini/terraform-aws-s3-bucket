@@ -35,7 +35,9 @@ resource "aws_s3_bucket" "this" {
   force_destroy = var.force_destroy
   lifecycle {
     ignore_changes = [
-      server_side_encryption_configuration
+      server_side_encryption_configuration,
+      tags,
+      all_tags
     ]
   }
 }
