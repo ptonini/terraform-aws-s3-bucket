@@ -126,11 +126,3 @@ module "policy" {
     Statement = local.access_policy_statements
   })
 }
-
-module "role" {
-  source                = "ptonini/iam-role/aws"
-  version               = "~> 3.0.0"
-  count                 = var.create_role ? 1 : 0
-  assume_role_principal = { AWS = var.role_owner_arn }
-  policy_statements     = local.access_policy_statements
-}

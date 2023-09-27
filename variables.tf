@@ -55,14 +55,6 @@ variable "create_policy" {
   default = false
 }
 
-variable "create_role" {
-  default = false
-}
-
-variable "role_owner_arn" {
-  default = null
-}
-
 variable "public_access_block" {
   default = false
 }
