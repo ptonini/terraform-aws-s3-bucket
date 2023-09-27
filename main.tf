@@ -129,11 +129,8 @@ module "policy" {
 
 module "role" {
   source                = "ptonini/iam-role/aws"
-  version               = "~> 1.0.0"
+  version               = "~> 3.0.0"
   count                 = var.create_role ? 1 : 0
   assume_role_principal = { AWS = var.role_owner_arn }
   policy_statements     = local.access_policy_statements
-  vault_role            = var.vault_role
-  vault_credential_type = var.vault_credential_type
-  vault_backend         = var.vault_backend
 }

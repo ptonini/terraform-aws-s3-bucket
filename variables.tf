@@ -63,18 +63,6 @@ variable "role_owner_arn" {
   default = null
 }
 
-variable "vault_role" {
-  default = null
-}
-
-variable "vault_backend" {
-  default = "aws"
-}
-
-variable "vault_credential_type" {
-  default = "assumed_role"
-}
-
 variable "public_access_block" {
   default = false
 }
