@@ -120,6 +120,7 @@ resource "aws_s3_bucket_inventory" "this" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  count  = var.lifecycle_rules == null ? 0 : 1
   bucket = aws_s3_bucket.this.id
   dynamic "rule" {
     for_each = var.lifecycle_rules

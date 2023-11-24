@@ -59,7 +59,7 @@ variable "lifecycle_rules" {
     status          = string
     expiration_days = number
   }))
-  default = {}
+  default = null
 }
 
 variable "logging" {
