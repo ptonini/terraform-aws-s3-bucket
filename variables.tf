@@ -5,7 +5,7 @@ variable "force_destroy" {
 }
 
 variable "object_ownership" {
-  default = "ObjectWriter"
+  default = "BucketOwnerEnforced"
 }
 
 variable "acl" {
@@ -13,7 +13,11 @@ variable "acl" {
 }
 
 variable "versioning" {
-  default = "Suspended"
+  default = "Enabled"
+}
+
+variable "create_policy" {
+  default = false
 }
 
 variable "bucket_policy_statements" {
@@ -21,56 +25,47 @@ variable "bucket_policy_statements" {
 }
 
 variable "server_side_encryption" {
-  default = {
-    kms_master_key_id = null
-    sse_algorithm     = "AES256"
-  }
+  type = object({
+    kms_master_key_id = optional(string)
+    sse_algorithm     = optional(string, "AES256")
+  })
+  default = {}
 }
 
 variable "inventory" {
-  default = false
-}
-
-variable "inventory_enabled" {
-  default = true
-}
-
-variable "inventory_included_object_versions" {
-  default = "All"
-}
-
-variable "inventory_schedule" {
-  default = "Weekly"
-}
-
-variable "inventory_format" {
-  default = "ORC"
-}
-
-variable "inventory_bucket_arn" {
+  type = object({
+    enabled                  = optional(bool, true)
+    included_object_versions = optional(string, "All")
+    schedule_frequency       = optional(string, "Weekly")
+    bucket_arn               = string
+    bucket_format            = optional(string, "ORC")
+  })
   default = null
-}
-
-variable "create_policy" {
-  default = false
 }
 
 variable "public_access_block" {
-  default = false
+  type = object({
+    block_public_acls       = optional(bool, false)
+    block_public_policy     = optional(bool, false)
+    restrict_public_buckets = optional(bool, false)
+    ignore_public_acls      = optional(bool, false)
+  })
+  default = {}
 }
 
-variable "block_public_acls" {
-  default = null
+variable "lifecycle_rules" {
+  type = map(object({
+    id              = string
+    status          = string
+    expiration_days = number
+  }))
+  default = {}
 }
 
-variable "block_public_policy" {
-  default = null
-}
-
-variable "ignore_public_acls" {
-  default = null
-}
-
-variable "restrict_public_buckets" {
+variable "logging" {
+  type = object({
+    target_bucket = string
+    target_prefix = optional(string, "/logs")
+  })
   default = null
 }

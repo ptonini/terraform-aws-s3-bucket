@@ -2,8 +2,8 @@ output "this" {
   value = aws_s3_bucket.this
 }
 
-output "access_policy_statements" {
-  value = local.access_policy_statements
+output "policy_statement" {
+  value = local.policy_statement
 }
 
 output "policy_arn" {

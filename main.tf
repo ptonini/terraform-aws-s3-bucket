@@ -1,5 +1,5 @@
 locals {
-  access_policy_statements = [
+  policy_statement = [
     {
       Effect   = "Allow"
       Action   = ["s3:ListAllMyBuckets"]
@@ -36,7 +36,9 @@ resource "aws_s3_bucket" "this" {
   lifecycle {
     ignore_changes = [
       server_side_encryption_configuration,
-      tags,
+      tags["business_unit"],
+      tags["product"],
+      tags["env"],
       tags_all
     ]
   }
@@ -51,10 +53,10 @@ resource "aws_s3_bucket_ownership_controls" "this" {
 
 resource "aws_s3_bucket_public_access_block" "this" {
   bucket                  = aws_s3_bucket.this.id
-  block_public_acls       = coalesce(var.block_public_acls, var.public_access_block)
-  block_public_policy     = coalesce(var.block_public_policy, var.public_access_block)
-  ignore_public_acls      = coalesce(var.ignore_public_acls, var.public_access_block)
-  restrict_public_buckets = coalesce(var.restrict_public_buckets, var.public_access_block)
+  block_public_acls       = var.public_access_block.block_public_acls
+  block_public_policy     = var.public_access_block.block_public_policy
+  ignore_public_acls      = var.public_access_block.ignore_public_acls
+  restrict_public_buckets = var.public_access_block.restrict_public_buckets
 }
 
 resource "aws_s3_bucket_acl" "this" {
@@ -101,28 +103,47 @@ resource "aws_s3_bucket_policy" "this" {
 }
 
 resource "aws_s3_bucket_inventory" "this" {
-  count                    = var.inventory ? 1 : 0
+  count                    = var.inventory == null ? 0 : 1
   bucket                   = aws_s3_bucket.this.id
   name                     = aws_s3_bucket.this.bucket
-  enabled                  = var.inventory_enabled
-  included_object_versions = var.inventory_included_object_versions
+  enabled                  = var.inventory.enabled
+  included_object_versions = var.inventory.included_object_versions
   schedule {
-    frequency = var.inventory_schedule
+    frequency = var.inventory.schedule_frequency
   }
   destination {
     bucket {
-      format     = var.inventory_format
-      bucket_arn = var.inventory_bucket_arn
+      format     = var.inventory.bucket_format
+      bucket_arn = var.inventory.bucket_arn
     }
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  bucket = aws_s3_bucket.this.id
+  dynamic "rule" {
+    for_each = var.lifecycle_rules
+    content {
+      id     = rule.value.id
+      status = rule.value.status
+      expiration {
+        days = rule.value.expiration_days
+      }
+    }
+  }
+}
+
+resource "aws_s3_bucket_logging" "example" {
+  count         = var.logging == null ? 0 : 1
+  bucket        = aws_s3_bucket.this.id
+  target_bucket = var.logging.target_bucket
+  target_prefix = var.logging.target_prefix
+}
+
 module "policy" {
-  source  = "ptonini/iam-policy/aws"
-  version = "~> 1.0.0"
-  count   = var.create_policy ? 1 : 0
-  policy = jsonencode({
-    Version   = "2012-10-17",
-    Statement = local.access_policy_statements
-  })
+  source    = "ptonini/iam-policy/aws"
+  version   = "~> 2.0.0"
+  count     = var.create_policy ? 1 : 0
+  name      = "${var.name}-bucket"
+  statement = local.policy_statement
 }
