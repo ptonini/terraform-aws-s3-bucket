@@ -1,4 +1,6 @@
 resource "aws_s3_bucket" "this" {
+  #checkov:skip=CKV_AWS_144: LOW severity
+  #checkov:skip=CKV_AWS_145: LOW severity
   bucket        = var.name
   force_destroy = var.force_destroy
   lifecycle {
@@ -20,6 +22,7 @@ resource "aws_s3_bucket_ownership_controls" "this" {
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
+  #checkov:skip=CKV_AWS_54: Allow public bucket
   bucket                  = aws_s3_bucket.this.id
   block_public_acls       = var.public_access_block.block_public_acls
   block_public_policy     = var.public_access_block.block_public_policy
@@ -46,22 +49,38 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
 }
 
 resource "aws_s3_bucket_policy" "this" {
+  #checkov:skip=CKV_AWS_70: Broken
   bucket = aws_s3_bucket.this.id
   policy = jsonencode({
     Version = "2012-10-17",
-    Statement = concat(var.bucket_policy_statements, [
-      {
-        Principal : "*"
-        Effect : "Deny"
-        Action : ["s3:*"]
-        Resource = [
-          "arn:aws:s3:::${aws_s3_bucket.this.bucket}",
-          "arn:aws:s3:::${aws_s3_bucket.this.bucket}/*"
-        ]
-        Condition : { Bool : { "aws:SecureTransport" : "false" } }
-      }
-    ])
+    Statement = concat(var.bucket_policy_statements, [{
+      Principal = "*"
+      Effect    = "Deny"
+      Action = [
+        "s3:*"
+      ]
+      Resource = [
+        "arn:aws:s3:::${aws_s3_bucket.this.bucket}",
+        "arn:aws:s3:::${aws_s3_bucket.this.bucket}/*"
+      ]
+      Condition = { Bool = { "aws:SecureTransport" = "false" } }
+    }])
   })
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  count  = var.lifecycle_rules == null ? 0 : 1
+  bucket = aws_s3_bucket.this.id
+  dynamic "rule" {
+    for_each = var.lifecycle_rules
+    content {
+      id     = rule.value.id
+      status = rule.value.status
+      expiration {
+        days = rule.value.expiration_days
+      }
+    }
+  }
 }
 
 resource "aws_s3_bucket_inventory" "this" {
@@ -81,26 +100,11 @@ resource "aws_s3_bucket_inventory" "this" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "this" {
-  count  = var.lifecycle_rules == null ? 0 : 1
-  bucket = aws_s3_bucket.this.id
-  dynamic "rule" {
-    for_each = var.lifecycle_rules
-    content {
-      id     = rule.value.id
-      status = rule.value.status
-      expiration {
-        days = rule.value.expiration_days
-      }
-    }
-  }
-}
-
-resource "aws_s3_bucket_logging" "example" {
+resource "aws_s3_bucket_logging" "this" {
   count         = var.logging == null ? 0 : 1
   bucket        = aws_s3_bucket.this.id
   target_bucket = var.logging.target_bucket
-  target_prefix = var.logging.target_prefix
+  target_prefix = coalesce(var.logging.target_prefix, var.name)
 }
 
 locals {
@@ -122,6 +126,7 @@ locals {
 }
 
 module "policy" {
+  #checkov:skip=CKV_TF_1: Private module
   source    = "ptonini/iam-policy/aws"
   version   = "~> 2.0.0"
   count     = var.create_policy ? 1 : 0

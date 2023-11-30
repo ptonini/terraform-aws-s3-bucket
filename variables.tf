@@ -45,10 +45,10 @@ variable "inventory" {
 
 variable "public_access_block" {
   type = object({
-    block_public_acls       = optional(bool, false)
+    restrict_public_buckets = optional(bool, true)
+    block_public_acls       = optional(bool, true)
     block_public_policy     = optional(bool, false)
-    restrict_public_buckets = optional(bool, false)
-    ignore_public_acls      = optional(bool, false)
+    ignore_public_acls      = optional(bool, true)
   })
   default = {}
 }
@@ -65,7 +65,7 @@ variable "lifecycle_rules" {
 variable "logging" {
   type = object({
     target_bucket = string
-    target_prefix = optional(string, "/logs")
+    target_prefix = optional(string)
   })
   default = null
 }
