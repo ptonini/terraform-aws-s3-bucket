@@ -27,7 +27,7 @@ variable "bucket_policy_statements" {
 variable "server_side_encryption" {
   type = object({
     kms_master_key_id = optional(string)
-    sse_algorithm     = optional(string, "AES256")
+    sse_algorithm     = optional(string, "aws:kms")
   })
   default = {}
 }
