@@ -39,11 +39,13 @@ resource "aws_s3_bucket_versioning" "this" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket = aws_s3_bucket.this.id
+
   rule {
     bucket_key_enabled = false
+
     apply_server_side_encryption_by_default {
       kms_master_key_id = var.server_side_encryption.kms_master_key_id
-      sse_algorithm     = var.server_side_encryption.sse_algorithm
+      sse_algorithm     = var.server_side_encryption.kms_master_key_id == null ? var.server_side_encryption.sse_algorithm : "aws:kms"
     }
   }
 }
